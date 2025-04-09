@@ -13,6 +13,7 @@ import java.io.PrintWriter;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Date;
+import java.util.List;
 
 @WebServlet(name = "MainServlet", value = "")
 public class MainServlet extends HttpServlet {
@@ -21,8 +22,9 @@ public class MainServlet extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        family = initFamily();
-
+        if(family == null) {
+            family = initFamily();
+        }
         int people = family.getUserList().size();
 
         response.setContentType("text/html;charset=UTF-8");
@@ -30,29 +32,72 @@ public class MainServlet extends HttpServlet {
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
-            out.println("<title>Рассходы семьи</title>");
+            out.println("<title>Расходы семьи</title>");
             out.println("</head>");
             out.println("<body>");
+            out.println("<h2>Остаток бюджета: "+family.getMoney().getCash()+"</h2>");
+
+            // Форма для добавления денег
+            out.println("<h3>Добавить деньги в бюджет:</h3>");
+            out.println("<form action=\"add-money\" method=\"post\">");
+            out.println("Сумма: <input type=\"number\" step=\"0.01\" name=\"amount\" required>");
+            out.println("<input type=\"submit\" value=\"Добавить\">");
+            out.println("</form>");
+
+
+            out.println("<h3>Добавить продукт:</h3>");
+            out.println("<form action=\"add-product\" method=\"post\">");
+            out.println("Пользователь: <select name=\"userIndex\">");
+            for (int i = 0; i < family.getUserList().size(); i++) {
+                out.println("<option value=\"" + i + "\">" + family.getUserList().get(i).getName() + "</option>");
+            }
+            out.println("</select><br>");
+            out.println("Название: <input type=\"text\" name=\"productName\" required><br>");
+            out.println("Цена: <input type=\"number\" step=\"0.01\" name=\"productCost\" required><br>");
+            out.println("<input type=\"submit\" value=\"Добавить продукт\">");
+            out.println("</form>");
 
             out.println("<h1>Таблица Расходов</h1>");
 
-            out.println("<table>");
-            out.println("<tbody>");
+            List<User> userList = family.getUserList();
+            for (int i = 0; i < userList.size(); i++) {
+                User user = userList.get(i);
+                out.println("<h2>"+ user.getName() +"</h2>");
+                out.println("<table border=\"1\">");
+                out.println("<thead>");
+                out.println("<tr>");
+                out.println("<th>Цена</th>");
+                out.println("<th>Наименование</th>");
+                out.println("<th>Дата</th>");
+                out.println("<th>Действие</th>");
+                out.println("</tr>");
+                out.println("</thead>");
+                out.println("<tbody>");
 
-         // for (int c = 1; c <= people; c++) {
-         //     out.println("<tr>");
-         //     for (int r = 1; r <= rows; r++) {
-         //         out.println("<td>");
-         //         out.println(DataModel.getValue(r, c));
-         //         out.println("</td>");
-         //     }
-         //     out.println("</tr>");
-         // }
+                for (int j = 0; j < user.getBuyList().size(); j++){
+                    Buy buy = user.getBuyList().get(j);
+                    out.println("<tr>");
+                    out.println("<td>" + buy.getCost() + "</td>");
+                    out.println("<td>" + buy.getName() + "</td>");
+                    out.println("<td>" + buy.getDate() + "</td>");
+                    out.println("<td>");
+                    out.println("<form action=\"remove-item\" method=\"post\">");
+                    out.println("<input type=\"hidden\" name=\"userIndex\" value=\"" + i + "\">");
+                    out.println("<input type=\"hidden\" name=\"itemIndex\" value=\"" + j + "\">");
+                    out.println("<input type=\"submit\" value=\"Удалить\">");
+                    out.println("</form>");
+                    out.println("</td>");
+                    out.println("</tr>");
+                }
 
-            out.println("</tbody>");
-            out.println("</table>");
+                out.println("</tbody>");
+                out.println("</table>");
+            }
+
+            out.println("<p><a href=\"all-expenses\">Просмотреть все расходы</a></p>");
             out.println("</body>");
             out.println("</html>");
+
         }
     }
 
@@ -63,10 +108,7 @@ public class MainServlet extends HttpServlet {
     }
 
 
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-    }
     private static Family initFamily(){
 
         Buy item1 = new Buy(230.3f,"Сыр", LocalDate.now());
@@ -82,5 +124,12 @@ public class MainServlet extends HttpServlet {
         result.addInFamily(user1);
 
         return result;
+    }
+
+    public static Family getFamily() {
+        if(family == null) {
+            family = initFamily();
+        }
+        return family;
     }
 }

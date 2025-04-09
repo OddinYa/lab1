@@ -2,14 +2,15 @@ package org.lab1.models;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.lab1.interfaces.MoneyTransactions;
+import org.lab1.interfaces.MakeMoney;
+import org.lab1.interfaces.SpendMoney;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Getter
 @Setter
-public class User implements MoneyTransactions {
+public class User implements MakeMoney, SpendMoney {
 
     public User(Money money,String name){
 
@@ -34,7 +35,7 @@ public class User implements MoneyTransactions {
     }
 
     @Override
-    public void makeMoney(int cash) {
+    public void makeMoney(float cash) {
         money.setCash(money.getCash()+cash);
     }
 }
